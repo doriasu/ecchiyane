@@ -3,8 +3,8 @@ import logo from './logo.svg';
 import './App.css';
 import firebase,{providerTwitter} from "./base";
 import {Button} from "@material-ui/core";
-import {fetchHomeTimeline} from "twitter-api-ts";
 import * as option from 'fp-ts/lib/Option';
+import axios from "axios"
 interface IApp{
 
 }
@@ -13,6 +13,7 @@ interface Iusers_info {
     consumersecret:string;
     token:string;
     sec_token:string;
+
 
 }
 class App extends React.Component<IApp,Iusers_info>{
@@ -47,6 +48,7 @@ class App extends React.Component<IApp,Iusers_info>{
     get_user_infomation=()=>{
         let item_token=this.state.token;
         let item_sec_token=this.state.sec_token;
+
         firebase.auth().getRedirectResult().then(function(result) {
             console.log("JIHIOHDJEDJIOJ");
             if (result.credential) {
@@ -58,10 +60,11 @@ class App extends React.Component<IApp,Iusers_info>{
                 if(credential.secret!==undefined){
                 item_sec_token = credential.secret;}
 
+
             }
             // The signed-in user info.
-            var user = result.user;
-            console.log(user);
+
+            console.log(result.user);
         }).catch(function(error) {
             // Handle Errors here.
             var errorCode = error.code;
@@ -77,24 +80,34 @@ class App extends React.Component<IApp,Iusers_info>{
 
     }
     get_twitter_info=()=>{
-        fetchHomeTimeline({
-            oAuth: {
-                consumerKey: this.state.consumerkey,
-                consumerSecret: this.state.consumersecret,
-                token: option.some(this.state.token),
-                tokenSecret: option.some(this.state.sec_token),
-            },
-            query: {
-                count: option.some(50),
-            },
-        })
-            // We use fp-ts’ Task type, which is lazy. Running the task returns a
-            // promise.
-            .run()
-            .then(response => {
-                console.log(response);
-                // => Either<ErrorResponse, TwitterAPITimelineResponseT>
-            });
+        // fetchHomeTimeline({
+        //     oAuth: {
+        //         consumerKey: this.state.consumerkey,
+        //         consumerSecret: this.state.consumersecret,
+        //         token: option.some(this.state.token),
+        //         tokenSecret: option.some(this.state.sec_token),
+        //     },
+        //     query: {
+        //         count: option.some(50),
+        //     },
+        // })
+        //     // We use fp-ts’ Task type, which is lazy. Running the task returns a
+        //     // promise.
+        //     .run()
+        //     .then(response => {
+        //         console.log(response);
+        //         // => Either<ErrorResponse, TwitterAPITimelineResponseT>
+        //     });
+        console.log(this.state.token);
+        let params=new URLSearchParams();
+        params.append('token',this.state.token);
+        params.append('sec_token',this.state.sec_token);
+        axios.post("http://127.0.0.1:8000/get_fav/",params)
+            .then((results)=>console.log(results.data.cnt))
+            .catch((error)=>{
+                console.log("通信失敗");
+                console.log(error.status);
+            })
     }
 
 
